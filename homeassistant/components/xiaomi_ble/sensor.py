@@ -125,26 +125,35 @@ def _device_key_to_bluetooth_entity_key(
 
 
 def _sensor_device_info_to_hass(
-    sensor_device_info: SensorDeviceInfo,
+    sensor_device_info: SensorDeviceInfo, address
 ) -> DeviceInfo:
     """Convert a sensor device info to a sensor device info."""
     hass_device_info = DeviceInfo({})
+    print("_sensor_device_info_to_hass, sensor_device_info=", sensor_device_info)
     if sensor_device_info.name is not None:
-        hass_device_info[ATTR_NAME] = sensor_device_info.name
+        hass_device_info[ATTR_NAME] = sensor_device_info.name + " X1 " + address
     if sensor_device_info.manufacturer is not None:
-        hass_device_info[ATTR_MANUFACTURER] = sensor_device_info.manufacturer
+        hass_device_info[ATTR_MANUFACTURER] = (
+            sensor_device_info.manufacturer + " X2 " + address
+        )
     if sensor_device_info.model is not None:
-        hass_device_info[ATTR_MODEL] = sensor_device_info.model
+        hass_device_info[ATTR_MODEL] = sensor_device_info.model + " X3 " + address
+    # hass_device_info[ATTR_CONNECTIONS] = {(CONNECTION_NETWORK_MAC, address)}
     return hass_device_info
 
 
 def sensor_update_to_bluetooth_data_update(
-    sensor_update: SensorUpdate,
+    sensor_update: SensorUpdate, address
 ) -> PassiveBluetoothDataUpdate:
     """Convert a sensor update to a bluetooth data update."""
+    print("sensor_update_to_bluetooth_data_update()")
+    print("sensor_update.devices=", sensor_update.devices)
+    for id, info in sensor_update.devices.items():
+        print("id=", id, ", info=", info)
+    print("address=", address)
     return PassiveBluetoothDataUpdate(
         devices={
-            device_id: _sensor_device_info_to_hass(device_info)
+            device_id: _sensor_device_info_to_hass(device_info, address)
             for device_id, device_info in sensor_update.devices.items()
         },
         entity_descriptions={
@@ -183,7 +192,13 @@ def process_service_info(
     ):
         entry.async_start_reauth(hass, data={"device": data})
 
-    return sensor_update_to_bluetooth_data_update(update)
+    print("process_service_info")
+    print("update=", update)
+    print("data=", data)
+    print("service_info=", service_info)
+    print("service_info.device=", service_info.device)
+    print("service_info.device.address=", service_info.device.address)
+    return sensor_update_to_bluetooth_data_update(update, service_info.device.address)
 
 
 async def async_setup_entry(

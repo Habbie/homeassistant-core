@@ -76,7 +76,9 @@ class BluetoothServiceInfoBleak(BluetoothServiceInfo):
     ) -> BluetoothServiceInfoBleak:
         """Create a BluetoothServiceInfoBleak from an advertisement."""
         return cls(
-            name=advertisement_data.local_name or device.name or device.address,
+            name=(advertisement_data.local_name or device.name or device.address)
+            + " X4 "
+            + (device.address or "no MAC"),
             address=device.address,
             rssi=device.rssi,
             manufacturer_data=advertisement_data.manufacturer_data,
